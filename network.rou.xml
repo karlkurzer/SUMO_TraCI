@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<routes>
+  <!-- Define different vehicle types -->
+  <vType id="normal" accel="0.8" decel="4.5" sigma="0.5" length="5" maxSpeed="50"/>
+  <vType id="slow" accel="0.6" decel="3.5" sigma="0.5" length="5" maxSpeed="45"/>
+  <vType id="fast" accel="1.0" decel="5.5" sigma="0.5" length="5" maxSpeed="55"/>
+
+  <!-- The car to be controlled -->
+  <vehicle id="veh0" type="normal" depart="0" color="0,1,0">
+    <route edges="middleTop_to_middleBottom middleBottom_to_rightBottom"/>
+  </vehicle>
+
+  <vehicle id="veh1" type="slow" depart="0" color="1,0,0">
+    <route edges="leftBottom_to_middleBottom middleBottom_to_rightBottom"/>
+  </vehicle>
+
+  <vehicle id="veh2" type="fast" depart="0" color="0,0,1">
+    <route edges="rightBottom_to_middleBottom middleBottom_to_leftBottom"/>
+  </vehicle>
+  
+  <!-- <flow id="vehicles1" color="1,0,0"  begin="0" end= "7200" probability="0.2">
+        <route edges="leftBottom_to_middleBottom middleBottom_to_rightBottom"/>
+    </flow> -->
+  <!-- <flow id="vehicles2" color="0,0,1"  begin="0" end= "7200" probability="0.2">
+        <route edges="rightBottom_to_middleBottom middleBottom_to_leftBottom"/>
+    </flow> -->
+</routes>
