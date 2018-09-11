@@ -1,4 +1,5 @@
-# SUMO_network
-An examplary SUMO network to get started quickly.
+# SUMO_TraCI
 
-Start the simulation by running: `python main.py`
+An exemplary SUMO network with a Python TraCI interface to get started quickly. 
+
+Make sure that Start the simulation by running: `python main.py`
