@@ -10,6 +10,7 @@ sumoCmd = [sumoBinary, "-c", "network.sumocfg"]
 
 import traci
 import traci.constants as tc
+import sumolib
 
 class StatePublisher(traci.StepListener):
     def step(self, t=0):
