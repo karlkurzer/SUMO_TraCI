@@ -11,3 +11,6 @@ An exemplary SUMO network with a Python TraCI interface to get started quickly.
 
 # Launch
 * start a new terminal window and run `python main.py`
+
+# Netedit
+* to manipulate the intersection type or the road type as well as the road layout netedit can be used
