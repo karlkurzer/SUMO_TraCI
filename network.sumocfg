@@ -7,6 +7,9 @@
   </input>
   <time>
     <begin value="0"/>
-    <end value="100"/>
+    <end value="50"/>
   </time>
+  <processing>
+    <collision.check-junctions value="true" />
+  </processing>
 </configuration>
