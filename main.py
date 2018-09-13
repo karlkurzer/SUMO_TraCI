@@ -5,44 +5,92 @@ if 'SUMO_HOME' in os.environ:
 else:   
     sys.exit("please declare environment variable 'SUMO_HOME'")
 
-sumoBinary = "/usr/bin/sumo-gui"
-sumoCmd = [sumoBinary, "-c", "network.sumocfg"]
+sumoBinary = "/home/karl/git/sumo/bin/sumo-gui"
+sumoConfig = ["-c", "network.sumocfg", "-S"]
+sumoCmd = [sumoBinary, sumoConfig[0], sumoConfig[1], sumoConfig[2]]
 
 import traci
 import traci.constants as tc
 import sumolib
 
-class StatePublisher(traci.StepListener):
+# STATE LISTENER CLASS
+class StateListener(traci.StepListener):
+    def __init__(self, vehicleIds, emergencyBreakThreshold=-3.0):
+        self.vehicleIds = vehicleIds
+        self.emergencyBreakThreshold = emergencyBreakThreshold
+        self.vehicles = {}
+        self.emergencyBreak = False
+        self.collision = False
+
     def step(self, t=0):
-        # receive vehicle data
-        veh0 = traci.vehicle.getSubscriptionResults("veh0")
-        veh1 = traci.vehicle.getSubscriptionResults("veh1")
-        veh2 = traci.vehicle.getSubscriptionResults("veh2")
-        # print vehicle data
-        print("green %.2f m/s" % veh0[tc.VAR_SPEED])
-        print("blue  %.2f m/s" % veh1[tc.VAR_SPEED])
-        print("red   %.2f m/s" % veh2[tc.VAR_SPEED])
-        # indicate that the step listener should stay active in the next step
+        self.retrieveState()
+        self.printState()
+        self.checkEmergencyBreak()
+        self.checkCollision()
+        # indicate that the state publisher should stay active in the next step
         return True
 
-print("Starting the TraCI server...\n")
+    def retrieveState(self):
+        # receive vehicle data
+        for vehicleId in self.vehicleIds:
+            self.vehicles[vehicleId] = traci.vehicle.getSubscriptionResults(vehicleId)
+
+    def printState(self):
+        # print vehicle data
+         for vehicleId in self.vehicleIds:
+             vehicle = self.vehicles[vehicleId]
+             if vehicle is not None:
+                 print("%s vel_t: %.2f m/s acc_t-1: %.2f m/s^2 dist: %.2f" % (vehicleId, vehicle[tc.VAR_SPEED], vehicle[tc.VAR_ACCELERATION], traci.lane.getLength(vehicle[tc.VAR_LANE_ID]) - vehicle[tc.VAR_LANEPOSITION]))
+    
+    def checkCollision(self):
+        # if SUMO detects a collision (e.g. teleports a vehicle) set the collision flag
+        if (traci.simulation.getStartingTeleportNumber() > 0):
+            print("\nCollision occured...")
+            self.collision = True
+
+    def checkEmergencyBreak(self):
+        # if any vehicle decelerates more than the emergencyBreakThreshold set the emergencyBreak flag
+        for vehicle in self.vehicles:
+            if vehicle is not None:
+                if vehicle < self.emergencyBreakThreshold:
+                    print("\nEmergency breaking required...")
+                    self.emergencyBreak = True
+
+# MAIN PROGRAM
+
+print("Starting the TraCI server...")
 traci.start(sumoCmd) 
 
-print("Subscribing to vehicle data...\n")
-traci.vehicle.subscribe("veh0", (tc.VAR_SPEED, tc.VAR_ACCEL, tc.VAR_POSITION, tc.VAR_LANE_ID))
-traci.vehicle.subscribe("veh1", (tc.VAR_SPEED, tc.VAR_ACCEL, tc.VAR_POSITION, tc.VAR_LANE_ID))
-traci.vehicle.subscribe("veh2", (tc.VAR_SPEED, tc.VAR_ACCEL, tc.VAR_POSITION, tc.VAR_LANE_ID))
+print("Subscribing to vehicle data...")
+traci.vehicle.subscribe("veh0", (tc.VAR_COLOR, tc.VAR_SPEED, tc.VAR_ACCELERATION, tc.VAR_POSITION, tc.VAR_LANE_ID, tc.VAR_LANEPOSITION))
+traci.vehicle.subscribe("veh1", (tc.VAR_COLOR, tc.VAR_SPEED, tc.VAR_ACCELERATION, tc.VAR_POSITION, tc.VAR_LANE_ID, tc.VAR_LANEPOSITION))
+traci.vehicle.subscribe("veh2", (tc.VAR_COLOR, tc.VAR_SPEED, tc.VAR_ACCELERATION, tc.VAR_POSITION, tc.VAR_LANE_ID, tc.VAR_LANEPOSITION))
 
-print("Constructing a StatePublisher...")
-statePub = StatePublisher()
-traci.addStepListener(statePub)
+print("Constructing a StateListener...")
+stateListener = StateListener(["veh0", "veh1", "veh2"])
+traci.addStepListener(stateListener)
+
+# disable speed control by SUMO
+traci.vehicle.setSpeedMode("veh0",0)
+# set the desired speed and the time to reach that speed
+traci.vehicle.slowDown("veh0",3,3)
 
 step = 0
-while step < 40:
+collision = False
+emergencyBreak = False
+while step < 20:
     # advance the simulation
     print("\nsimulation step: %i" % step)
     traci.simulationStep()
     step += 1
+    # if emergency breaking or a collision occurs stop the simulation
+    if stateListener.emergencyBreak or stateListener.collision:
+        break
 
-print("Stopping the TraCI server...")
+if collision or emergencyBreak:
+    print("\nScenario failed...")
+else:
+    print("\nScenario succeeded...")
+
+print("\nStopping the TraCI server...")
 traci.close()
