@@ -5,7 +5,7 @@ if 'SUMO_HOME' in os.environ:
 else:   
     sys.exit("please declare environment variable 'SUMO_HOME'")
 
-sumoBinary = "/home/karl/git/sumo/bin/sumo-gui"
+sumoBinary = "C:/Program Files (x86)/Eclipse/Sumo/bin/sumo-gui"
 sumoConfig = ["-c", "network.sumocfg", "-S"]
 sumoCmd = [sumoBinary, sumoConfig[0], sumoConfig[1], sumoConfig[2]]
 
