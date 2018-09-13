@@ -15,7 +15,7 @@ import sumolib
 
 # STATE LISTENER CLASS
 class StateListener(traci.StepListener):
-    def __init__(self, vehicleIds, emergencyBreakThreshold=-3.0):
+    def __init__(self, vehicleIds, emergencyBreakThreshold=-4.0):
         self.vehicleIds = vehicleIds
         self.emergencyBreakThreshold = emergencyBreakThreshold
         self.vehicles = {}
@@ -74,11 +74,9 @@ traci.addStepListener(stateListener)
 # disable speed control by SUMO
 traci.vehicle.setSpeedMode("veh0",0)
 # set the desired speed and the time to reach that speed
-traci.vehicle.slowDown("veh0",3,3)
+traci.vehicle.slowDown("veh0",1,3)
 
 step = 0
-collision = False
-emergencyBreak = False
 while step < 20:
     # advance the simulation
     print("\nsimulation step: %i" % step)
@@ -88,7 +86,7 @@ while step < 20:
     if stateListener.emergencyBreak or stateListener.collision:
         break
 
-if collision or emergencyBreak:
+if stateListener.emergencyBreak or stateListener.collision:
     print("\nScenario failed...")
 else:
     print("\nScenario succeeded...")
