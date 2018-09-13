@@ -50,9 +50,10 @@ class StateListener(traci.StepListener):
 
     def checkEmergencyBreak(self):
         # if any vehicle decelerates more than the emergencyBreakThreshold set the emergencyBreak flag
-        for vehicle in self.vehicles:
+        for vehicleId in self.vehicleIds:
+            vehicle = self.vehicles[vehicleId]
             if vehicle is not None:
-                if vehicle < self.emergencyBreakThreshold:
+                if vehicle[tc.VAR_ACCELERATION] < self.emergencyBreakThreshold:
                     print("\nEmergency breaking required...")
                     self.emergencyBreak = True
 
